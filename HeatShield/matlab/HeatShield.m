@@ -29,7 +29,7 @@ classdef HeatShield < handle
             disp('HeatShield initialized.')
         end
 
-        function cartigeActuator(HeatShieldObject, percent)
+        function cartrigeActuator(HeatShieldObject, percent)
             writePWMDutyCycle(HeatShieldObject.arduino, HeatShieldObject.HEAT_UPIN, (percent / 100));
         end
         
