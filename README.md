@@ -5,4 +5,4 @@ Driven by the need to promptly test different control algorithms in minuaturized
 
 The Temperature Shield is comprised of a temperature sensor, a heating element and a cooling element. It's breadboard version can be seen below.
 
-![Circuit](/HeatShield/images/breadboard_version.jpeg)
+![Circuit](/HeatShield/images/breadboard_version.jpg)
