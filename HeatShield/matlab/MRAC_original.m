@@ -11,9 +11,6 @@ clear all
 close all
 format long e
 
-HeatShield=HeatShield;                      % Construct object from class
-HeatShield.begin();                         % Initialize shield
-
 %Sinal de referência r
 Amp=1; %Amplitude da referência
 Te=20; %Período fundamental da referência
@@ -24,21 +21,15 @@ den_s=[1 1];
 G_s=tf(num_s,den_s);
 
 %Discretização da planta
-T=2; %Período de amostragem
+T=0.01; %Período de amostragem
 [num_z,den_z] = c2dm(num_s,den_s,T,'zoh');
 G_z=tf(num_z,den_z,T);
 bz=num_z(2); %Coeficiente do numerador
 az=den_z(2); %Coeficiente do denominador
 
-% %Modelo de referência em s
-% numW_s=0.02074;
-% denW_s=[1 0.005851];
-% W_s=tf(numW_s,denW_s);
-% am=denW_s(2);
-
 %Modelo de referência em s
-numW_s=.2;
-denW_s=[1 .2];
+numW_s=2;
+denW_s=[1 2];
 W_s=tf(numW_s,denW_s);
 am=denW_s(2);
 
@@ -49,7 +40,7 @@ bmz=numW_z(2); %Coeficiente do numerador
 amz=denW_z(2); %Coeficiente do denominador
 
 %Reserva de espaço para os vetores de interesse
-ntotal=120/T; %Número total de pontos no gráficos
+ntotal=1e5; %Número total de pontos no gráficos
 r=zeros(1,ntotal);
 ym=zeros(1,ntotal);
 y=zeros(1,ntotal);
@@ -88,33 +79,18 @@ alfa=den2_z(2);
 %F(z)=beta/(z+alfa)
 
 %Laço de repetição para executação do controlador MRAC
-ym(1) = HeatShield.sensorRead();
-r(1) = ym(1);
-HeatShield.fanActuator(0)
 for k=2:ntotal
-    %r(k)=Amp*square(2*pi*k*T/Te);
-    r(k) = 45;
+    r(k)=Amp*square(2*pi*k*T/Te);
     ym(k)=-amz*ym(k-1)+bmz*r(k-1);
-    % --y(k)=-az*y(k-1)+bz*u(k-1);
-    y(k) = HeatShield.sensorRead();
-    if u(k-1) >= 0
-        theta1(k) = theta1(k-1) - T*g*zetar(k-1)*e1(k-1);
-        theta2(k) = theta2(k-1) + T*g*zetay(k-1)*e1(k-1);
-    else
-        theta1(k) = theta1(k-1);
-        theta2(k) = theta2(k-1);
-    end
+    y(k)=-az*y(k-1)+bz*u(k-1);
+    theta1(k) = theta1(k-1) - T*g*zetar(k-1)*e1(k-1);
+    theta2(k) = theta2(k-1) + T*g*zetay(k-1)*e1(k-1);
     u(k)=theta1(k)*r(k) - theta2(k)*y(k);
-    Uc(k) = constrain(u(k), 0, 100);%
-    HeatShield.cartrigeActuator(Uc(k)); %
     e1(k)=y(k)-ym(k);
     %Saídas dos filtros auxiliares para o mecanisno de adaptação
     zetar(k)=-alfa*zetar(k-1)+beta*r(k-1);
     zetay(k)=-alfa*zetay(k-1)+beta*y(k-1);
     tempo(k)=(k-2)*T;
-    pause(T);
 end
-HeatShield.fanActuator(0)
-HeatShield.cartrigeActuator(0)
 
-plot(tempo, r, tempo, y, tempo, ym); legend('ref', 'y', 'ym');
+plot(tempo, r); hold on; plot(tempo, y);

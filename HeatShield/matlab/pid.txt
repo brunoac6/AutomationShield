@@ -1,0 +1,9 @@
+SIMULATION PARAMETERS:
+
+Start time: 06-Jul-2022 11:31:49 
+This test will take 10 minutes to finish.
+
+Ts = 0.5 s
+Kp = 5 s
+Ti = 30 s
+Td = 1 s

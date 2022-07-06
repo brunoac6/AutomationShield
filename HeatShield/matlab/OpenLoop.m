@@ -3,12 +3,16 @@ clear; clc; close all;
 HeatShield = HeatShield;
 HeatShield.begin();
 
-Tsamples = 2;
+plotRealtime = false;
+Tsamples = 0.25;
 
-fileName = 'cartridge-fan_response';
+fileName = '../data/cartridge-fan_response';
 
-cartridgeBehaviourValue = [0*ones(1,50), 60*ones(1,450), 20*ones(1,200), 0*ones(1,300)];
-fanBehaviourValue = [0*ones(1,50), 0*ones(1,100), 100*ones(1,50), 0*ones(1,300), 40*ones(1,300), 100*ones(1,200)];
+%cartridgeBehaviourValue = [0*ones(1,50), 60*ones(1,450), 20*ones(1,200), 0*ones(1,300)];
+%fanBehaviourValue = [0*ones(1,50), 0*ones(1,100), 100*ones(1,50), 0*ones(1,300), 40*ones(1,300), 100*ones(1,200)];
+
+cartridgeBehaviourValue = [10*ones(1,10000)];
+fanBehaviourValue = [0*ones(1,10000)];
 
 if length(cartridgeBehaviourValue) ~= length(fanBehaviourValue)
     disp("Dimensions of input signals don't meet.")
@@ -17,29 +21,34 @@ end
 
 Nsamples = length(cartridgeBehaviourValue);
 Temp = zeros(1, Nsamples);
+TimeReal = zeros(1, Nsamples); 
 
 fprintf('This test will take %0.5g minutes to finish.\n', Tsamples*Nsamples/60)
 
-figure(1);
 for i=1:Nsamples
+    tic;
     HeatShield.cartrigeActuator(cartridgeBehaviourValue(i));
     HeatShield.fanActuator(fanBehaviourValue(i));
     Temp(i) = HeatShield.sensorRead();
+    TimeReal(i) = toc;
+    pause(Tsamples - TimeReal(i));
+    if ~plotRealtime
+        continue;
+    end
     subplot(2,1,1); 
         plot(i, Temp(i), 'x'); hold on; grid on;
         title('Output Singal'); xlabel('Samples'); ylabel('Temperature ºC');
     subplot(2,1,2); 
         plot(i, cartridgeBehaviourValue(i), 'o', 'MarkerFaceColor', 'red', 'MarkerEdgeColor','red'); hold on; grid on;
         plot(i, fanBehaviourValue(i), 's', 'MarkerFaceColor', 'blue', 'MarkerEdgeColor', 'blue'); hold on; grid on;
-        title('Input and Disturb Signals'); xlabel('Samples'); ylabel('Percentage');
-    pause(Tsamples);
+        title('Input and Disturb Signals'); xlabel('Samples'); ylabel('Percentage');   
 end
 hold off;
 %%%%%% TURN OFF HARDWARE
 HeatShield.cartrigeActuator(0);
 HeatShield.fanActuator(0);
 disp("Test ended.")
-
+% 
 %% Saving to csv file
 T = table(cartridgeBehaviourValue', fanBehaviourValue', Temp');
 T.Properties.VariableNames = {'ActuatorCartrige', 'ActuatorFan', 'Temperature'};
